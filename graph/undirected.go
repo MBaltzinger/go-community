@@ -10,9 +10,9 @@ type GraphUnd struct {
 
 // Implement general Edge
 type UndEdge struct {
-	NodesFrom  Node
-	NodesTo Node
-	W   float64
+	NodesFrom Node
+	NodesTo   Node
+	W         float64
 }
 
 func (e UndEdge) NodesIn() (n Node) {
@@ -69,6 +69,6 @@ func (g GraphUnd) SubGraph(l []Node) (newg Graph, ext []GeneralEdge) {
 			ext = append(ext, edge)
 		}
 	}
-	
-	return GraphUnd{l ,ledge}, ext
+
+	return GraphUnd{l, ledge}, ext
 }

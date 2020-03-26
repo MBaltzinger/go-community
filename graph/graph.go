@@ -16,15 +16,15 @@ type Graph interface {
 }
 
 type GeneralEdge interface {
-	NodesIn()  Node
+	NodesIn() Node
 	NodesOut() Node
-	Weight()   float64
+	Weight() float64
 }
 
 type Edge struct {
 	NodesFrom Node
-	NodesTo Node
-	W   float64
+	NodesTo   Node
+	W         float64
 }
 
 func (e Edge) NodesIn() (n Node) {
@@ -62,7 +62,7 @@ func containsEdge(s []GeneralEdge, e GeneralEdge) bool {
 }
 
 func adj_mat(g Graph) [][]float64 {
-	
+
 	adj := make([][]float64, len(g.Nodes()))
 
 	for _, node := range g.Nodes() {
