@@ -50,13 +50,14 @@ func (g GraphUnd) Nodes() []Node {
 	return g.Node
 }
 
-func (g GraphUnd) From(n Node) (l []Node) {
+func (g GraphUnd) From(n Node) (l []Node, le []GeneralEdge) {
 	for _, e := range g.Edges() {
 		if e.NodesIn().Id == n.Id {
 			l = append(l, e.NodesOut())
+			le = append(le, e)
 		}
 	}
-	return l
+	return l, le
 }
 
 func (g GraphUnd) SubGraph(l []Node) (newg Graph, ext []GeneralEdge) {

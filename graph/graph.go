@@ -10,7 +10,7 @@ type Graph interface {
 
 	sumWeight() float64
 
-	From(n Node) []Node
+	From(n Node) ([]Node, []GeneralEdge)
 
 	SubGraph(l []Node) (graph Graph, ext []GeneralEdge)
 }
@@ -61,7 +61,7 @@ func containsEdge(s []GeneralEdge, e GeneralEdge) bool {
 	return false
 }
 
-func adj_mat(g Graph) [][]float64 {
+func Adj_mat(g Graph) [][]float64 {
 
 	adj := make([][]float64, len(g.Nodes()))
 

@@ -1,14 +1,72 @@
 package graph
 
 type PartitionedGraph struct {
-	graph     Graph
+	Graph     Graph
 	Partition map[int][]Node
+}
+
+type Hierachical struct {
+	Graph     PartitionedGraph
+	PartMap map[Node][]Node
+	Parent *Hierachical
+}
+
+func (g Hierachical) CreateHierachical() (Hierachical) {
+
+	Nodes := make([]Node, 0)
+	Edges := make([]UndEdge, 0)
+	PartMap := make(map[Node][]Node)
+
+	ReverseComm := make(map[Node]Node)
+	i := 0
+	newPartition := make(map[int][]Node)
+	for _, list_node := range g.Graph.Partition {
+				
+		PartMap[Node{i}] = list_node
+		Nodes = append(Nodes, Node{i})
+		newPartition[i] = []Node{Node{i}}
+		for _, node := range list_node {
+			ReverseComm[node] = Node{i}
+		}
+		i += 1
+	}
+
+	for _, list_node := range g.Graph.Partition {
+		for _, node := range list_node {
+			_, list_edges := g.Graph.Graph.From(node)
+			for _, edge := range list_edges {
+
+				EdgeTemp := UndEdge{
+					NodesFrom: ReverseComm[node],
+					NodesTo:   ReverseComm[edge.NodesOut()],
+					W:         edge.Weight() / 2,
+				}
+
+				update := false
+				for i, NewEdge := range Edges {
+					if ((NewEdge.NodesIn().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesOut().Id)) || ((NewEdge.NodesOut().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesIn().Id)) {
+						NewEdge.W += EdgeTemp.W
+						Edges[i].W = NewEdge.W
+						update = true
+					}
+				}
+
+				if !update {
+					Edges = append(Edges, EdgeTemp)
+				}
+			}
+		}
+	}
+
+	gt := GraphUnd{Nodes, Edges}
+
+	return Hierachical{PartitionedGraph{gt, newPartition}, PartMap,&g}
 }
 
 func (g PartitionedGraph) Modularity() (q float64) {
 
-	m := 2 * g.graph.sumWeight()
-	adj := adj_mat(g.graph)
+	m := 2 * g.Graph.sumWeight()
+	adj := Adj_mat(g.Graph)
 
 	for _, listnode := range g.Partition {
 		for _, node := range listnode {
@@ -26,7 +84,7 @@ func (g PartitionedGraph) Modularity() (q float64) {
 	return q / (m)
 }
 
-func (g PartitionedGraph) community(n Node) (i int) {
+func (g PartitionedGraph) Community(n Node) (i int) {
 	for k, v := range g.Partition {
 		for _, node := range v {
 			if node.Id == n.Id {
@@ -34,7 +92,8 @@ func (g PartitionedGraph) community(n Node) (i int) {
 			}
 		}
 	}
-	return 0
+	// shouldn't happen
+	return 100000
 }
 
 func contains(s []int, e int) bool {
@@ -48,10 +107,11 @@ func contains(s []int, e int) bool {
 
 func (g PartitionedGraph) NeighbouringCommunity(n Node) (nb []int) {
 
-	cn := g.community(n)
+	cn := g.Community(n)
 	nb = append(nb, cn)
-	for _, node := range g.graph.From(n) {
-		cn := g.community(node)
+	list_node, _ := g.Graph.From(n)
+	for _, node := range list_node {
+		cn := g.Community(node)
 		if !(contains(nb, cn)) {
 			nb = append(nb, cn)
 		}
@@ -59,12 +119,12 @@ func (g PartitionedGraph) NeighbouringCommunity(n Node) (nb []int) {
 	return nb
 }
 
-func (g PartitionedGraph) detalQ(n Node) (dq float64, dst int) {
+func (g PartitionedGraph) DeltaQ(n Node) (dq float64, dst int) {
 
-	m := g.graph.sumWeight()
+	m := g.Graph.sumWeight()
 	dqtemp := 0.
 	dqadd := 0.
-	adj := adj_mat(g.graph)
+	adj := Adj_mat(g.Graph)
 	dqremove := 0.
 	for _, nb := range g.NeighbouringCommunity(n) {
 
@@ -78,7 +138,7 @@ func (g PartitionedGraph) detalQ(n Node) (dq float64, dst int) {
 			kiin += adj[n.Id][node_n.Id]
 		}
 
-		if nb != g.community(n) {
+		if nb != g.Community(n) {
 
 			dqtemp = (kiin - (SumTot*ki)/(2*m)) / (m)
 			if dqtemp > dqadd {

@@ -3,6 +3,16 @@ package graph
 import "math"
 import "testing"
 import "reflect"
+import "os"
+import "fmt"
+
+func TestParser(t *testing.T) {
+	
+	f,_ := os.Open("input.txt")
+	graph := ParseFile(f)
+	fmt.Println(graph)
+
+}
 
 func TestAjdacency(t *testing.T) {
 	node1 := Node{0}
@@ -11,7 +21,7 @@ func TestAjdacency(t *testing.T) {
 
 	g := GraphUnd{[]Node{node1, node2}, []UndEdge{edge}}
 
-	got := adj_mat(g)
+	got := Adj_mat(g)
 	want := [][]float64{{0, 1},
 		{1, 0},
 	}
@@ -115,7 +125,7 @@ func TestDqAdding(t *testing.T) {
 	modularity := c.Modularity()
 	modularity_second := c_second.Modularity()
 
-	dq, _ := c.detalQ(node3)
+	dq, _ := c.DeltaQ(node3)
 
 	if math.Round((modularity_second-modularity)*10000/10000) != math.Round(dq*10000/10000) {
 		t.Errorf("Wrong dq")
@@ -159,7 +169,7 @@ func TestDqAddingAndRemobe(t *testing.T) {
 	modularity := c.Modularity()
 	modularity_second := c_second.Modularity()
 
-	dq, _ := c.detalQ(node4)
+	dq, _ := c.DeltaQ(node4)
 
 	if math.Round((modularity_second-modularity)*10000/10000) != math.Round(dq*10000/10000) {
 		t.Errorf("Wrong dq")
