@@ -3,16 +3,6 @@ package graph
 import "math"
 import "testing"
 import "reflect"
-import "os"
-import "fmt"
-
-func TestParser(t *testing.T) {
-	
-	f,_ := os.Open("input.txt")
-	graph := ParseFile(f)
-	fmt.Println(graph)
-
-}
 
 func TestAjdacency(t *testing.T) {
 	node1 := Node{0}
@@ -133,7 +123,7 @@ func TestDqAdding(t *testing.T) {
 
 }
 
-func TestDqAddingAndRemobe(t *testing.T) {
+func TestDqAddingAndRemove(t *testing.T) {
 	node1 := Node{0}
 	node2 := Node{1}
 	node3 := Node{2}

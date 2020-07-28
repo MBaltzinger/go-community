@@ -10,7 +10,7 @@ func remove(s []graph.Node, i int) []graph.Node {
 	return s[:len(s)-1]
 }
 
-func RunLouvain (g *graph.Hierachical) (*graph.Hierachical) {
+func RunLouvain(g *graph.Hierachical) *graph.Hierachical {
 	if movingNodes(&g.Graph) {
 		h := g.CreateHierachical()
 		return RunLouvain(&h)
@@ -19,15 +19,15 @@ func RunLouvain (g *graph.Hierachical) (*graph.Hierachical) {
 	}
 }
 
-func UnpackLouvain(h *graph.Hierachical) (map[int][]graph.Node) {
+func UnpackLouvain(h *graph.Hierachical) map[int][]graph.Node {
 
 	for {
 		mapping := h.PartMap
-		if (mapping != nil) {
-			
+		if mapping != nil {
+
 			partNew := make(map[int][]graph.Node)
-			
-			for nb,list_node := range h.Graph.Partition {
+
+			for nb, list_node := range h.Graph.Partition {
 				for _, node := range list_node {
 					for _, node2 := range h.PartMap[node] {
 						partNew[nb] = append(partNew[nb], node2)
@@ -79,11 +79,11 @@ func movingNodes(g *graph.PartitionedGraph) bool {
 	final_partition := map[int][]graph.Node{}
 	nb_comm := 0
 
-	for _,value := range (g.Partition) {
+	for _, value := range g.Partition {
 		if len(value) > 0 {
-			nb_comm +=1
+			nb_comm += 1
 			final_partition[nb_comm] = value
-		  }
+		}
 	}
 
 	g.Partition = final_partition
@@ -96,13 +96,13 @@ func main() {
 
 	argsWithoutProg := os.Args[1:]
 
-	f,_ := os.Open(argsWithoutProg[0])
+	f, _ := os.Open(argsWithoutProg[0])
 	g := graph.ParseFile(f)
 
 	part_test := make(map[int][]graph.Node)
 	nb_comm := 0
-	for _,n := range g.Nodes() {
-		nb_comm +=1
+	for _, n := range g.Nodes() {
+		nb_comm += 1
 		part_test[nb_comm] = []graph.Node{n}
 	}
 
@@ -110,7 +110,7 @@ func main() {
 		Graph:     g,
 		Partition: part_test}
 
-	h := graph.Hierachical{c_test,nil,nil}
+	h := graph.Hierachical{c_test, nil, nil}
 
 	fH := RunLouvain(&h)
 

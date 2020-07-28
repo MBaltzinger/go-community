@@ -6,22 +6,21 @@ type PartitionedGraph struct {
 }
 
 type Hierachical struct {
-	Graph     PartitionedGraph
+	Graph   PartitionedGraph
 	PartMap map[Node][]Node
-	Parent *Hierachical
+	Parent  *Hierachical
 }
 
-func (g Hierachical) CreateHierachical() (Hierachical) {
+func (g Hierachical) CreateHierachical() Hierachical {
 
 	Nodes := make([]Node, 0)
-	Edges := make([]UndEdge, 0)
 	PartMap := make(map[Node][]Node)
 
 	ReverseComm := make(map[Node]Node)
 	i := 0
 	newPartition := make(map[int][]Node)
 	for _, list_node := range g.Graph.Partition {
-				
+
 		PartMap[Node{i}] = list_node
 		Nodes = append(Nodes, Node{i})
 		newPartition[i] = []Node{Node{i}}
@@ -30,37 +29,73 @@ func (g Hierachical) CreateHierachical() (Hierachical) {
 		}
 		i += 1
 	}
+	var gt Graph
 
-	for _, list_node := range g.Graph.Partition {
-		for _, node := range list_node {
-			_, list_edges := g.Graph.Graph.From(node)
-			for _, edge := range list_edges {
+	switch g.Graph.Graph.(type) {
+	default:
+		Edges := make([]UndEdge, 0)
+		for _, list_node := range g.Graph.Partition {
+			for _, node := range list_node {
+				_, list_edges := g.Graph.Graph.From(node)
+				for _, edge := range list_edges {
 
-				EdgeTemp := UndEdge{
-					NodesFrom: ReverseComm[node],
-					NodesTo:   ReverseComm[edge.NodesOut()],
-					W:         edge.Weight() / 2,
-				}
-
-				update := false
-				for i, NewEdge := range Edges {
-					if ((NewEdge.NodesIn().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesOut().Id)) || ((NewEdge.NodesOut().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesIn().Id)) {
-						NewEdge.W += EdgeTemp.W
-						Edges[i].W = NewEdge.W
-						update = true
+					EdgeTemp := UndEdge{
+						NodesFrom: ReverseComm[node],
+						NodesTo:   ReverseComm[edge.NodesOut()],
+						W:         edge.Weight() / 2,
 					}
-				}
 
-				if !update {
-					Edges = append(Edges, EdgeTemp)
+					update := false
+					for i, NewEdge := range Edges {
+						if ((NewEdge.NodesIn().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesOut().Id)) || ((NewEdge.NodesOut().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesIn().Id)) {
+							NewEdge.W += EdgeTemp.W
+							Edges[i].W = NewEdge.W
+							update = true
+						}
+					}
+
+					if !update {
+						Edges = append(Edges, EdgeTemp)
+					}
 				}
 			}
 		}
+
+		gt = GraphUnd{Nodes, Edges}
+
+	case GraphDirect:
+		Edges := make([]Edge, 0)
+		for _, list_node := range g.Graph.Partition {
+			for _, node := range list_node {
+				_, list_edges := g.Graph.Graph.From(node)
+				for _, edge := range list_edges {
+
+					EdgeTemp := Edge{
+						NodesFrom: ReverseComm[node],
+						NodesTo:   ReverseComm[edge.NodesOut()],
+						W:         edge.Weight(),
+					}
+
+					update := false
+					for i, NewEdge := range Edges {
+						if (NewEdge.NodesIn().Id == ReverseComm[node].Id) && (ReverseComm[edge.NodesOut()].Id == NewEdge.NodesOut().Id) {
+							NewEdge.W += EdgeTemp.W
+							Edges[i].W = NewEdge.W
+							update = true
+						}
+					}
+
+					if !update {
+						Edges = append(Edges, EdgeTemp)
+					}
+				}
+			}
+		}
+
+		gt = GraphDirect{Nodes, Edges}
 	}
 
-	gt := GraphUnd{Nodes, Edges}
-
-	return Hierachical{PartitionedGraph{gt, newPartition}, PartMap,&g}
+	return Hierachical{PartitionedGraph{gt, newPartition}, PartMap, &g}
 }
 
 func (g PartitionedGraph) Modularity() (q float64) {
